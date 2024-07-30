@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        function registerTransaction() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const methodId = urlParams.get('method');
+            
+            if (!methodId) {
+                alert('No payment method selected');
+                return;
+            }
+
+            const data = {
+                merchantId: 304324,
+                posId: 304324,
+                sessionId: 'some-session-id',  // Replace with your actual session ID
+                amount: 123,
+                currency: 'PLN',
+                description: 'Test Payment',
+                email: 'zuziak117@wp.pl',
+                client: 'Test Client',
+                address: 'Test Address',
+                zip: '00-000',
+                city: 'Test City',
+                country: 'PL',
+                phone: '123456789',
+                language: 'pl',
+                method: methodId,
+                urlReturn: 'https://zuziak117.github.io/test/return.html',
+                urlCancel: 'https://zuziak117.github.io/test/cancel.html',
+                urlStatus: 'https://zuziak117.github.io/test/status.html',
+                timeLimit: 0,
+                channel: 1,
+                waitForResult: true,
+                regulationAccept: false,
+                shipping: 0,
+                transferLabel: 'Test Transfer',
+                mobileLib: 1,
+                sdkVersion: '1.0',
+                encoding: 'UTF-8',
+                methodRefId: '12345'
+            };
+
+            const crc_data = JSON.stringify({
+                sessionId: data.sessionId,
+                merchantId: data.merchantId,
+                amount: data.amount,
+                currency: data.currency,
+                crc: 'b98e2df5a320f64d'
+            });
+
+            const sign = sha384(crc_data);  // Use a JavaScript implementation of SHA-384
+            data.sign = sign;
+
+            fetch('https://sandbox.przelewy24.pl/api/v1/transaction/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa('304324:a8d7f8c518ad4ace0be848eb291a5870')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.data && responseData.data.token) {
+                    const redirectUrl = `https://sandbox.przelewy24.pl/trnRequest/${responseData.data.token}`;
+                    window.location.href = redirectUrl;
+                } else {
+                    alert('Error registering transaction');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error registering transaction');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', registerTransaction);
+    </script>
+</head>
+<body>
+    <p>Redirecting, please wait...</p>
+</body>
+</html>
